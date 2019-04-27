@@ -3,35 +3,10 @@
 
 import random as rd
 
-'''
-[
-[1,2,3,4],
-[2,2,3,4],
-[3,2,3,4],
-[4,2,3,4],
-]
-
-[
-[1,1,2,2],
-[0,4,0,4],
-[3,2,3,4],
-[4,2,3,4],
-]
-
-┌─┬─┬─┬─┐
-│1│2│3│4│
-├─┼─┼─┼─┤
-│2│2│3│4│
-├─┼─┼─┼─┤
-│3│2│3│4│
-├─┼─┼─┼─┤
-│4│2│3│4│
-└─┴─┴─┴─┘
-'''
-
 class Matrix(object):
     def __init__(self):
         self.init_matrix()
+        self.__chancePlus = 0
         self.spawn_numbers(100)
     '''
     list_push(tempList):
@@ -69,6 +44,62 @@ class Matrix(object):
             self.__move('down')
         elif inp == 'd':
             self.__move('right')
+    
+    def __move(self,direction):
+        self.__newMatrix = []
+        #UP
+        if   direction == 'up':
+            self.__a = []
+            for i in [0,1,2,3]:
+                self.__b = []
+                for j in [0,1,2,3]:
+                    self.__b.append(self.matrix[j][i])
+                self.__a.append(self.__b)
+            self.__b = []
+            for i in self.__a:
+                i = self.list_push(i)
+                self.__b.append(i)
+            for i in [0,1,2,3]:
+                self.__a = []
+                for j in [0,1,2,3]:
+                    self.__a.append(self.__b[j][i])
+                self.__newMatrix.append(self.__a)
+        #DOWN
+        elif direction == 'down':
+            self.__a = []
+            for i in [0,1,2,3]:
+                self.__b = []
+                for j in [3,2,1,0]:
+                    self.__b.append(self.matrix[j][i])
+                self.__a.append(self.__b)
+            self.__b = []
+            for i in self.__a:
+                i = self.list_push(i)
+                self.__b.append(i)
+            for i in [3,2,1,0]:
+                self.__a = []
+                for j in [0,1,2,3]:
+                    self.__a.append(self.__b[j][i])
+                self.__newMatrix.append(self.__a)
+        #RIGHT
+        elif direction == 'right':
+            for i in self.matrix:
+                i = i[::-1]
+                i = self.list_push(i)
+                i = i[::-1]
+                self.__newMatrix.append(i)
+        #LEFT
+        elif direction == 'left':
+            for i in self.matrix:
+                i = i[::]
+                self.__newMatrix.append(self.list_push(i))      
+        #RETURN
+        if self.matrix != self.__newMatrix:
+            self.matrix = self.__newMatrix
+            self.spawn_numbers()
+            return 'MOVED'
+        elif self.matrix == self.__newMatrix:
+            return 'UNMOVED'
 
     def list_push(self,tempList):
         #去掉所有的0
@@ -86,28 +117,29 @@ class Matrix(object):
                 tempList[i] = tempList[i]*2
         return tempList
                 
-    
-    def spawn_numbers(self,coin=40):
-        if rd.randint(1,100) <= coin:
+    def spawn_numbers(self,chance=40):
+        if rd.randint(1,100) <= (chance + self.__chancePlus):
             while True:
                 x = rd.randint(0,3)
                 y = rd.randint(0,3)
                 if self.matrix[x][y] == 0:
                     self.matrix[x][y] = rd.choice([2,2,4,8])
+                    self.__chancePlus = 0
                     break
+        else:self.__chancePlus += 10
 
     def print_matrix(self):
-        self.__get_max_length()
+        maxLength = self.__get_max_length()
         string = []
-        string.append('┌{0}┬{0}┬{0}┬{0}┐'.format('─'*self.mx))
+        string.append('┌{0}┬{0}┬{0}┬{0}┐'.format('─'*maxLength))
         string.append(self.__ret_line_in_string(0))
-        string.append('├{0}┼{0}┼{0}┼{0}┤'.format('─'*self.mx))
+        string.append('├{0}┼{0}┼{0}┼{0}┤'.format('─'*maxLength))
         string.append(self.__ret_line_in_string(1))
-        string.append('├{0}┼{0}┼{0}┼{0}┤'.format('─'*self.mx))
+        string.append('├{0}┼{0}┼{0}┼{0}┤'.format('─'*maxLength))
         string.append(self.__ret_line_in_string(2))
-        string.append('├{0}┼{0}┼{0}┼{0}┤'.format('─'*self.mx))
+        string.append('├{0}┼{0}┼{0}┼{0}┤'.format('─'*maxLength))
         string.append(self.__ret_line_in_string(3))
-        string.append('└{0}┴{0}┴{0}┴{0}┘'.format('─'*self.mx))
+        string.append('└{0}┴{0}┴{0}┴{0}┘'.format('─'*maxLength))
         for i in string:
             print(i)
 
@@ -118,84 +150,22 @@ class Matrix(object):
 
     def __ret_line_in_string(self,line):
         l = '│'
+        maxLength = self.__get_max_length()
         for i in self.matrix[line]:
             if i == 0:i=" "
-            i = ' '*(self.mx-len(str(i))) + str(i)
+            i = ' '*(maxLength-len(str(i))) + str(i)
             l = l + i + '│'
         return l
 
     def __get_max_length(self):
-        self.mx = 1
+        maxLength=1
         for i in self.matrix:
             for j in i:
-                if len(str(j))>1:self.mx = len(str(j))
-        return self.mx
-
-    def __move(self,direction):
-        self.__newM = []
-        #UP
-        if   direction == 'up':
-            self.__a = []
-            for i in [0,1,2,3]:
-                self.__b = []
-                for j in [0,1,2,3]:
-                    self.__b.append(self.matrix[j][i])
-                self.__a.append(self.__b)
-            self.__b = []
-            for i in self.__a:
-                i = self.list_push(i)
-                self.__b.append(i)
-            for i in [0,1,2,3]:
-                self.__a = []
-                for j in [0,1,2,3]:
-                    self.__a.append(self.__b[j][i])
-                self.__newM.append(self.__a)
-        #LEFT
-        elif direction == 'left':
-            for i in self.matrix:
-                i = self.list_push(i)
-                self.__newM.append(i)
-        #DOWN
-        elif direction == 'down':
-            self.__a = []
-            for i in [0,1,2,3]:
-                self.__b = []
-                for j in [3,2,1,0]:
-                    self.__b.append(self.matrix[j][i])
-                self.__a.append(self.__b)
-            self.__b = []
-            for i in self.__a:
-                i = self.list_push(i)
-                self.__b.append(i)
-            for i in [3,2,1,0]:
-                self.__a = []
-                for j in [0,1,2,3]:
-                    self.__a.append(self.__b[j][i])
-                self.__newM.append(self.__a)
-        #RIGHT
-        elif direction == 'right':
-            for i in self.matrix:
-                i.reverse()
-                i = self.list_push(i)
-                i.reverse()
-                self.__newM.append(i)
-        #RETURN
-        self.matrix = self.__newM
-        return 'OK'
-
-def Main():
-    m = Matrix()
-    while True:
-        m.print_matrix()
-        m.move()
-        m.spawn_numbers()
-
-if __name__ == '__Main__':
-    Main()
+                if len(str(j))>maxLength:maxLength = len(str(j))
+        return maxLength
 
 
-'''
-数字生成还不够智能
-居然可以原地不动等数字生成？？有瑕疵
-'''
-
+m = Matrix()
+while 1:
+    m.print_matrix()
+    m.move()
